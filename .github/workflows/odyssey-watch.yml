@@ -1,0 +1,39 @@
+name: odyssey-watch
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # GitHub's floor; actual cadence is best-effort
+  workflow_dispatch:        # manual trigger (also needed once to activate the schedule)
+
+# Only one run at a time, so two overlapping runs can't both alert on the
+# same drop or race each other writing state back.
+concurrency:
+  group: odyssey-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: write           # needed to commit the seen-sessions state file
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for new bookable sessions
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python3 check_odyssey.py
+
+      - name: Persist state
+        run: |
+          if [[ -n "$(git status --porcelain seen_sessions.json)" ]]; then
+            git config user.name  "odyssey-watch[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add seen_sessions.json
+            git commit -m "state: update seen sessions [skip ci]"
+            # Another run may have pushed while we ran; rebase and retry once.
+            git push || (git pull --rebase --autostash && git push)
+          else
+            echo "state unchanged"
+          fi
