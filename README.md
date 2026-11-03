@@ -60,3 +60,17 @@ NTFY_TOPIC=your-topic python3 check_odyssey.py
 ```
 
 Credit: forked from [vicliv/odyssey-ticket-watch](https://github.com/vicliv/odyssey-ticket-watch).
+
+---
+
+## Retired
+
+The 70mm run of *The Odyssey* at Cinéma Banque Scotia ended 2026-11-05, so the
+watcher has been retired. The scheduled workflow was removed on 2026-11-03;
+the script and final state file are kept for reference.
+
+To bring it back, restore `.github/workflows/odyssey-watch.yml` from history:
+
+    git log --diff-filter=D --oneline -- .github/workflows/odyssey-watch.yml
+    git checkout <commit>^ -- .github/workflows/odyssey-watch.yml
+
